@@ -1,0 +1,82 @@
+version: '3'
+# DB_HOST=db
+# DB_NAME=app
+# DB_USER=postgres
+# DB_PASS=K9YZy046lEV
+# POSTGRES_DB=app
+# POSTGRES_USER=postgres
+# POSTGRES_PASSWORD=@K9YZy046lEV
+
+services:
+  app:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    # volumes:
+    #   - ./app:/app
+    command: >
+      sh -c "python3 manage.py makemigrations &&
+             python3 manage.py migrate &&
+             python3 manage.py wait_for_db &&
+             python3 manage.py runserver 0.0.0.0:8000"
+    env_file:
+      - ./.env.dev
+    environment:
+    - "POSTGRES_HOST_AUTH_METHOD=trust"
+    depends_on:
+      - db
+    links:
+      - db:db
+    networks:
+      - djangonetwork
+  db:
+    image: postgres:alpine
+    restart: always
+    env_file:
+      - ./.env.dev
+    environment:
+    - "POSTGRES_HOST_AUTH_METHOD=trust"
+    networks:
+      - djangonetwork
+    # volumes: 
+    #   - pgdata:/var/lib/postgresql/data
+  redis:
+    image: redis:alpine
+    ports:
+     - 6379:6379
+    networks:
+      - djangonetwork
+  celery:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: celery -A conf.celery worker -B -l info
+    env_file:
+      - ./.env.dev
+    environment:
+    - "POSTGRES_HOST_AUTH_METHOD=trust"
+    depends_on:
+      - app
+      - db
+      - redis
+    links:
+      - db:db
+    networks:
+      - djangonetwork
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+    command: >
+      sh -c "yarn serve"
+
+networks:
+  djangonetwork:
+    driver: bridge
