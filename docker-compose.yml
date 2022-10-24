@@ -1,11 +1,4 @@
 version: '3'
-# DB_HOST=db
-# DB_NAME=app
-# DB_USER=postgres
-# DB_PASS=K9YZy046lEV
-# POSTGRES_DB=app
-# POSTGRES_USER=postgres
-# POSTGRES_PASSWORD=@K9YZy046lEV
 
 services:
   app:
@@ -15,8 +8,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    # volumes:
-    #   - ./app:/app
     command: >
       sh -c "python3 manage.py makemigrations &&
              python3 manage.py migrate &&
@@ -41,8 +32,6 @@ services:
     - "POSTGRES_HOST_AUTH_METHOD=trust"
     networks:
       - djangonetwork
-    # volumes: 
-    #   - pgdata:/var/lib/postgresql/data
   redis:
     image: redis:alpine
     ports:

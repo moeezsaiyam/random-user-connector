@@ -27,18 +27,14 @@ class UserView(APIView):
         # Serialize the data in requied format
         countries = {}
         for q in queryset:
-            if q["country"] in countries:
-                countries[q["country"]].append({
+            if q["country"] not in countries:
+                countries[q["country"]] = []
+
+            countries[q["country"]].append({
                     "name": q["name"],
                     "gender": q["gender"],
                     "email": q["email"],
                 })
-            else:
-                countries[q["country"]] = [{
-                    "name": q["name"],
-                    "gender": q["gender"],
-                    "email": q["email"],
-                }]
                 
         data = [{"name": country, "users":countries[country]} for country in countries]
 
